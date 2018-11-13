@@ -1,0 +1,28 @@
+<div id="textTo"></div>
+<div id="messagesDiv"></div>
+
+<input type="text" id="messageInput" name="message">
+<button id="submitBtn" name="message" >Send</button>
+
+<script src="/socket.io/socket.io.js"></script>
+<script>
+   var socket = io();
+   var messageDiv = document.getElementById('messagesDiv')
+   var messageInput = document.getElementById('messageInput')
+   var submitBtn = document.getElementById('submitBtn')
+   var textTo = document.getElementById('textTo')
+
+
+   submitBtn.addEventListener('click', () => {
+        socket.emit('dmIn', name + " : " + messageInput.value);
+        messageInput.value = '';
+   })
+
+   socket.on('dmOut', data => {
+     console.log('message received : ',data)
+     messageDiv.innerHTML += '<p>'+data+'</p>'
+    })
+    socket.on('dmUser', data => {
+        textTo.innerHTML = data;
+    })
+</script>

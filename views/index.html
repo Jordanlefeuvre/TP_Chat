@@ -1,0 +1,110 @@
+<style>
+    body {font-family: Arial, Helvetica, sans-serif;}
+    
+    /* The Modal (background) */
+    .modal {
+        display: none; /* Hidden by default */
+        position: fixed; /* Stay in place */
+        z-index: 1; /* Sit on top */
+        padding-top: 100px; /* Location of the box */
+        left: 0;
+        top: 0;
+        width: 100%; /* Full width */
+        height: 100%; /* Full height */
+        overflow: auto; /* Enable scroll if needed */
+        background-color: rgb(0,0,0); /* Fallback color */
+        background-color: rgba(0,0,0,0.4); /* Black w/ opacity */
+    }
+    
+    /* Modal Content */
+    .modal-content {
+        background-color: #fefefe;
+        margin: auto;
+        padding: 20px;
+        border: 1px solid #888;
+        width: 80%;
+    }
+    a {
+        color: green;
+    }
+</style>
+
+<div id="myModal" class="modal">
+    <div class="modal-content">
+        <p>Pick a name</p>
+      <input type="text" id="textName">
+      <button id="btnName">Send</button>
+    </div>
+</div>
+<div id="textYou"></div>
+<div id="messagesDiv"></div>
+
+<input type="text" id="messageInput" name="message">
+<button id="submitBtn" name="message" >Send</button>
+
+<div id="connected"></div>
+
+<script src="/socket.io/socket.io.js"></script>
+<script>
+   var socket = io();
+   var messageDiv = document.getElementById('messagesDiv')
+   var messageInput = document.getElementById('messageInput')
+   var submitBtn = document.getElementById('submitBtn')
+
+   //Pick a name
+   var modal = document.getElementById('myModal');
+   var btn = document.getElementById("btnName");
+   var textName = document.getElementById('textName');
+   var name = '';
+   var texte = ''
+   var txt = []
+
+   let users = {}
+   window.onload = function(event) {
+	    modal.style.display = "block";
+   }
+   btn.addEventListener('click', () => {
+        modal.style.display = "none";
+        name = textName.value
+        socket.emit('utilisateur',name)
+        
+   })
+   
+   function dm(socketId){
+       messageInput.value = "dm: " + socketId
+   }
+   var connected = document.getElementById('connected')
+   socket.on('users', data => {
+            users = data
+            connected.innerHTML = '<ul>'
+            for(var index in users){
+                connected.innerHTML += '<li><a href="#" onclick="javascript:dm(\''+ users[index] +'\')">'+ users[index] + '</a> is connected' + '</li>'
+            };
+            
+            connected.innerHTML += '</ul>'
+            document.getElementById('textYou').innerText = 'You:' + users[socket.id]
+    })
+
+
+   submitBtn.addEventListener('click', () => {
+        messageDiv.innerHTML += '<p><b>'+messageInput.value+'</b></p>'
+        socket.emit('message', users[socket.id] + " : " + messageInput.value);
+        messageInput.value = '';
+   })
+
+   socket.on('message', data => {
+     console.log('message received : ',data)
+     if(data.split(' ')[2] == 'dm:'){
+            txt= data.split(' ')
+            for(var i=0; i < txt.length; i++){
+                if(i != 2 && i != 3){
+                    texte += txt[i] + " "
+                }
+            }
+            messageDiv.innerHTML += '<p><a>'+texte+'</a></p>'
+            console.log(texte)
+    }else{
+            messageDiv.innerHTML += '<p>'+data+'</p>'
+        }
+    })
+</script>
