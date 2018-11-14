@@ -40,7 +40,11 @@ io.on('connection', socket => {
             socket.broadcast.emit('message',data)
         }
     })
-
+    socket.on('disconnect', (data) => {
+        console.log('user disconnected ', socket.id)
+        delete users[socket.id]
+        io.emit('users', users)
+    })
 
 
 })
